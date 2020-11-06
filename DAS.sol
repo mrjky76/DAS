@@ -1,167 +1,419 @@
-pragma solidity ^0.4.20;
+
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the D General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// D General Public License for more details.
+
+// You should have received a copy of the D General Public License
+// along with this program.  If not, see <http://www.D.org/licenses/>.
 
 
-contract TRC20 {
-    // Public variables of the token
-    string public name;
-    string public symbol;
-    uint8 public decimals = 18;
-    // 18 decimals is the strongly suggested default, avoid changing it
-    uint256 public totalSupply;
+pragma solidity ^0.4.25;
+// produced by the Solididy File Flattener (c) 
+// contact : hsn@hsn.link
+// released under Apache 2.0 licence
+contract ERC20Basic {
+  function totalSupply() public view returns (uint256);
+  function balanceOf(address who) public view returns (uint256);
+  function transfer(address to, uint256 value) public returns (bool);
+  event Transfer(address indexed from, address indexed to, uint256 value);
+}
 
-    // This creates an array with all balances
-    mapping (address => uint256) public balanceOf;
-    mapping (address => mapping (address => uint256)) public allowance;
+library SafeMath {
 
-    // This generates a public event on the blockchain that will notify clients
-    event Transfer(address indexed from, address indexed to, uint256 value);
+  /**
+  * @dev Multiplies two numbers, throws on overflow.
+  */
+  function mul(uint256 a, uint256 b) internal pure returns (uint256) {
+    if (a == 0) {
+      return 0;
+    }
+    uint256 c = a * b;
+    assert(c / a == b);
+    return c;
+  }
 
-    // This generates a public event on the blockchain that will notify clients
-    event Approval(address indexed _owner, address indexed _spender, uint256 _value);
+  /**
+  * @dev Integer division of two numbers, truncating the quotient.
+  */
+  function div(uint256 a, uint256 b) internal pure returns (uint256) {
+    // assert(b > 0); // Solidity automatically throws when dividing by 0
+    uint256 c = a / b;
+    // assert(a == b * c + a % b); // There is no case in which this doesn't hold
+    return c;
+  }
 
-    // This notifies clients about the amount burnt
-    event Burn(address indexed from, uint256 value);
+  /**
+  * @dev Substracts two numbers, throws on overflow (i.e. if subtrahend is greater than minuend).
+  */
+  function sub(uint256 a, uint256 b) internal pure returns (uint256) {
+    assert(b <= a);
+    return a - b;
+  }
 
-    /**
-     * Constructor function
-     *
-     * Initializes contract with initial supply tokens to the creator of the contract
-     */
-    uint256 initialSupply = 1000000000;
-    string tokenName = 'Decentralized Affiliate Silver TokenS';
-    string tokenSymbol = 'DASTS';
-    constructor() public {
+  /**
+  * @dev Adds two numbers, throws on overflow.
+  */
+  function add(uint256 a, uint256 b) internal pure returns (uint256) {
+    uint256 c = a + b;
+    assert(c >= a);
+    return c;
+  }
+}
 
-        totalSupply = initialSupply * 10 ** uint256(decimals);  // Update total supply with the decimal amount
-        balanceOf[msg.sender] = totalSupply;                // Give the creator all initial tokens
-        name = tokenName;                                   // Set the name for display purposes
-        symbol = tokenSymbol;                               // Set the symbol for display purposes
+contract Ownable {
+  address public owner;
+
+
+  event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
+
+
+  /**
+   * @dev The Ownable constructor sets the original `owner` of the contract to the sender
+   * account.
+   */
+ constructor() public  {
+    owner = msg.sender;
+  }
+
+  /**
+   * @dev Throws if called by any account other than the owner.
+   */
+  modifier onlyOwner() {
+    require(msg.sender == owner);
+    _;
+  }
+
+  /**
+   * @dev Allows the current owner to transfer control of the contract to a newOwner.
+   * @param newOwner The address to transfer ownership to.
+   */
+  function transferOwnership(address newOwner) public onlyOwner {
+    require(newOwner != address(0));
+    emit OwnershipTransferred(owner, newOwner);
+    owner = newOwner;
+  }
+
+}
+
+contract BasicToken is ERC20Basic {
+  using SafeMath for uint256;
+
+  mapping(address => uint256) balances;
+
+  uint256 totalSupply_ = 0;
+
+  /**
+  * @dev total number of tokens in existence
+  */
+  function totalSupply() public view returns (uint256) {
+    return totalSupply_;
+  }
+
+  /**
+  * @dev transfer token for a specified address
+  * @param _to The address to transfer to.
+  * @param _value The amount to be transferred.
+  */
+  function transfer(address _to, uint256 _value) public returns (bool) {
+    require(_to != address(0));
+    require(_value <= balances[msg.sender]);
+
+    // SafeMath.sub will throw if there is not enough balance.
+    balances[msg.sender] = balances[msg.sender].sub(_value);
+    balances[_to] = balances[_to].add(_value);
+    emit Transfer(msg.sender, _to, _value);
+    return true;
+  }
+
+  /**
+  * @dev Gets the balance of the specified address.
+  * @param _owner The address to query the the balance of.
+  * @return An uint256 representing the amount owned by the passed address.
+  */
+  function balanceOf(address _owner) public view returns (uint256 balance) {
+    return balances[_owner];
+  }
+
+}
+
+contract ERC20 is ERC20Basic {
+  function allowance(address owner, address spender) public view returns (uint256);
+  function transferFrom(address from, address to, uint256 value) public returns (bool);
+  function approve(address spender, uint256 value) public returns (bool);
+  event Approval(address indexed owner, address indexed spender, uint256 value);
+}
+
+contract StandardToken is ERC20, BasicToken {
+
+  mapping (address => mapping (address => uint256)) internal allowed;
+
+
+  /**
+   * @dev Transfer tokens from one address to another
+   * @param _from address The address which you want to send tokens from
+   * @param _to address The address which you want to transfer to
+   * @param _value uint256 the amount of tokens to be transferred
+   */
+  function transferFrom(address _from, address _to, uint256 _value) public returns (bool) {
+    require(_to != address(0));
+    require(_value <= balances[_from]);
+    require(_value <= allowed[_from][msg.sender]);
+
+    balances[_from] = balances[_from].sub(_value);
+    balances[_to] = balances[_to].add(_value);
+    allowed[_from][msg.sender] = allowed[_from][msg.sender].sub(_value);
+    emit  Transfer(_from, _to, _value);
+    return true;
+  }
+
+  /**
+   * @dev Approve the passed address to spend the specified amount of tokens on behalf of msg.sender.
+   *
+   * Beware that changing an allowance with this method brings the risk that someone may use both the old
+   * and the new allowance by unfortunate transaction ordering. One possible solution to mitigate this
+   * race condition is to first reduce the spender's allowance to 0 and set the desired value afterwards:
+   * https://github.com/ethereum/EIPs/issues/20#issuecomment-263524729
+   * @param _spender The address which will spend the funds.
+   * @param _value The amount of tokens to be spent.
+   */
+  function approve(address _spender, uint256 _value) public returns (bool) {
+    allowed[msg.sender][_spender] = _value;
+    emit  Approval(msg.sender, _spender, _value);
+    return true;
+  }
+
+  /**
+   * @dev Function to check the amount of tokens that an owner allowed to a spender.
+   * @param _owner address The address which owns the funds.
+   * @param _spender address The address which will spend the funds.
+   * @return A uint256 specifying the amount of tokens still available for the spender.
+   */
+  function allowance(address _owner, address _spender) public view returns (uint256) {
+    return allowed[_owner][_spender];
+  }
+
+  /**
+   * @dev Increase the amount of tokens that an owner allowed to a spender.
+   *
+   * approve should be called when allowed[_spender] == 0. To increment
+   * allowed value is better to use this function to avoid 2 calls (and wait until
+   * the first transaction is mined)
+   * From HSN Token.sol
+   * @param _spender The address which will spend the funds.
+   * @param _addedValue The amount of tokens to increase the allowance by.
+   */
+  function increaseApproval(address _spender, uint256 _addedValue) public returns (bool) {
+    allowed[msg.sender][_spender] = allowed[msg.sender][_spender].add(_addedValue);
+    emit Approval(msg.sender, _spender, allowed[msg.sender][_spender]);
+    return true;
+  }
+
+  /**
+   * @dev Decrease the amount of tokens that an owner allowed to a spender.
+   *
+   * approve should be called when allowed[_spender] == 0. To decrement
+   * allowed value is better to use this function to avoid 2 calls (and wait until
+   * the first transaction is mined)
+   * From MonolithDAO Token.sol
+   * @param _spender The address which will spend the funds.
+   * @param _subtractedValue The amount of tokens to decrease the allowance by.
+   */
+  function decreaseApproval(address _spender, uint256 _subtractedValue) public returns (bool) {
+    uint256 oldValue = allowed[msg.sender][_spender];
+    if (_subtractedValue > oldValue) {
+      allowed[msg.sender][_spender] = 0;
+    } else {
+      allowed[msg.sender][_spender] = oldValue.sub(_subtractedValue);
+    }
+    emit Approval(msg.sender, _spender, allowed[msg.sender][_spender]);
+    return true;
+  }
+
+}
+
+contract MintableToken is StandardToken, Ownable {
+    event Mint(address indexed to, uint256 amount);
+    event MintFinished();
+
+    bool public mintingFinished = false;
+
+
+    modifier canMint() {
+      require(!mintingFinished);
+      _;
+    }
+
+  /**
+   * @dev Function to mint tokens
+   * @param _to The address that will receive the minted tokens.
+   * @param _amount The amount of tokens to mint.
+   * @return A boolean that indicates if the operation was successful.
+   */
+	function mint(address _to, uint256 _amount) onlyOwner canMint public returns (bool) {
+		totalSupply_ = totalSupply_.add(_amount);
+		balances[_to] = balances[_to].add(_amount);
+		emit Mint(_to, _amount);
+		emit Transfer(address(0), _to, _amount);
+		return true;
     }
 
     /**
-     * Internal transfer, only can be called by this contract
-     */
-    function _transfer(address _from, address _to, uint _value) internal {
-        // Prevent transfer to 0x0 address. Use burn() instead
-        require(_to != 0x0);
-        // Check if the sender has enough
-        require(balanceOf[_from] >= _value);
-        // Check for overflows
-        require(balanceOf[_to] + _value >= balanceOf[_to]);
-        // Save this for an assertion in the future
-        uint previousBalances = balanceOf[_from] + balanceOf[_to];
-        // Subtract from the sender
-        balanceOf[_from] -= _value;
-        // Add the same to the recipient
-        balanceOf[_to] += _value;
-        emit Transfer(_from, _to, _value);
-        // Asserts are used to use static analysis to find bugs in your code. They should never fail
-        assert(balanceOf[_from] + balanceOf[_to] == previousBalances);
-    }
-
-    /**
-     * Transfer tokens
-     *
-     * Send `_value` tokens to `_to` from your account
-     *
-     * @param _to The address of the recipient
-     * @param _value the amount to send
-     */
-    function transfer(address _to, uint256 _value) public returns (bool success) {
-        _transfer(msg.sender, _to, _value);
-        return true;
-    }
-
-    /**
-     * Transfer tokens from other address
-     *
-     * Send `_value` tokens to `_to` on behalf of `_from`
-     *
-     * @param _from The address of the sender
-     * @param _to The address of the recipient
-     * @param _value the amount to send
-     */
-    function transferFrom(address _from, address _to, uint256 _value) public returns (bool success) {
-        require(_value <= allowance[_from][msg.sender]);     // Check allowance
-        allowance[_from][msg.sender] -= _value;
-        _transfer(_from, _to, _value);
-        return true;
-    }
-
-    /**
-     * Set allowance for other address
-     *
-     * Allows `_spender` to spend no more than `_value` tokens on your behalf
-     *
-     * @param _spender The address authorized to spend
-     * @param _value the max amount they can spend
-     */
-    function approve(address _spender, uint256 _value) public
-    returns (bool success) {
-        allowance[msg.sender][_spender] = _value;
-        emit Approval(msg.sender, _spender, _value);
-        return true;
-    }
-
-    /**
-     * Destroy tokens
-     *
-     * Remove `_value` tokens from the system irreversibly
-     *
-     * @param _value the amount of money to burn
-     */
-    function burn(uint256 _value) public returns (bool success) {
-        require(balanceOf[msg.sender] >= _value);   // Check if the sender has enough
-        balanceOf[msg.sender] -= _value;            // Subtract from the sender
-        totalSupply -= _value;                      // Updates totalSupply
-        emit Burn(msg.sender, _value);
-        return true;
-    }
-
- //------------------------
-    // Lock account transfer 
-
-    mapping (address => uint256) private _lockTimes;
-    mapping (address => uint256) private _lockAmounts;
-
-    event LockChanged(address indexed account, uint256 releaseTime, uint256 amount);
-
-    function setLock(address account, uint256 releaseTime, uint256 amount) onlyOwner public {
-        _lockTimes[account] = releaseTime; 
-        _lockAmounts[account] = amount;
-        emit LockChanged( account, releaseTime, amount ); 
-    }
-
-    function getLock(address account) public view returns (uint256 lockTime, uint256 lockAmount) {
-        return (_lockTimes[account], _lockAmounts[account]);
-    }
-
-    function _isLocked(address account, uint256 amount) internal view returns (bool) {
-        return _lockTimes[account] != 0 && 
-            _lockAmounts[account] != 0 && 
-            _lockTimes[account] > block.timestamp &&
-            (
-                balanceOf(account) <= _lockAmounts[account] ||
-                balanceOf(account).sub(_lockAmounts[account]) < amount
-            );
-    }
-
-    /**
-     * Destroy tokens from other account
-     *
-     * Remove `_value` tokens from the system irreversibly on behalf of `_from`.
-     *
-     * @param _from the address of the sender
-     * @param _value the amount of money to burn
-     */
-    function burnFrom(address _from, uint256 _value) public returns (bool success) {
-        require(balanceOf[_from] >= _value);                // Check if the targeted balance is enough
-        require(_value <= allowance[_from][msg.sender]);    // Check allowance
-        balanceOf[_from] -= _value;                         // Subtract from the targeted balance
-        allowance[_from][msg.sender] -= _value;             // Subtract from the sender's allowance
-        totalSupply -= _value;                              // Update totalSupply
-        emit Burn(_from, _value);
+    * @dev Function to stop minting new tokens.
+    * @return True if the operation was successful.
+    */
+    function finishMinting() onlyOwner canMint public returns (bool) {
+        mintingFinished = true;
+        emit MintFinished();
         return true;
     }
 }
 
+contract HSN is MintableToken {
+
+    using SafeMath for uint256;
+    string public name = "Hyper Speed Network";
+    string public   symbol = "HSN";
+    uint public   decimals = 8;
+    bool public  TRANSFERS_ALLOWED = false;
+    uint256 public MAX_TOTAL_SUPPLY = 1000000000 * (10 **8);
+
+
+    struct LockParams {
+        uint256 TIME;
+        address ADDRESS;
+        uint256 AMOUNT;
+    }
+
+    //LockParams[] public  locks;
+    mapping(address => LockParams[]) private locks; 
+
+    event Burn(address indexed burner, uint256 value);
+
+    function burn(uint256 _value) onlyOwner public {
+        require(_value <= balances[msg.sender]);
+
+        balances[msg.sender] = balances[msg.sender].sub(_value);
+        totalSupply_ = totalSupply().sub(_value);
+
+        emit Burn(msg.sender, _value);
+    }
+
+    function transferFrom(address _from, address _to, uint256 _value) public validAddress(_to) returns (bool) {
+        require(TRANSFERS_ALLOWED || msg.sender == owner);
+        require(canBeTransfered(_from, _value));
+
+        return super.transferFrom(_from, _to, _value);
+    }
+
+
+    function lock(address _to, uint256 releaseTime, uint256 lockamount) onlyOwner public returns (bool) {
+
+        // locks.push( LockParams({
+        //     TIME:releaseTime,
+        //     AMOUNT:lockamount,
+        //     ADDRESS:_to
+        // }));
+
+        LockParams memory lockdata;
+        lockdata.TIME = releaseTime;
+        lockdata.AMOUNT = lockamount;
+        lockdata.ADDRESS = _to;
+
+        locks[_to].push(lockdata);
+
+        return true;
+    }
+
+    function canBeTransfered(address _addr, uint256 value) public view validAddress(_addr) returns (bool){
+		uint256 total = 0;
+        for (uint i=0; i < locks[_addr].length; i++) {
+            if (locks[_addr][i].TIME > now && locks[_addr][i].ADDRESS == _addr){					
+				total = total.add(locks[_addr][i].AMOUNT);                
+            }
+        }
+		
+		if ( value > balanceOf(_addr).sub(total)){
+            return false;
+        }
+        return true;
+    }
+
+	function gettotalHold(address _addr) public view validAddress(_addr) returns (uint256){
+		require( msg.sender == _addr || msg.sender == owner);
+		
+	    uint256 total = 0;
+		for (uint i=0; i < locks[_addr].length; i++) {
+			if (locks[_addr][i].TIME > now && locks[_addr][i].ADDRESS == _addr){					
+				total = total.add(locks[_addr][i].AMOUNT);                
+			}
+		}
+			
+		return total;
+	}
+
+    function mint(address _to, uint256 _amount) public validAddress(_to) onlyOwner canMint returns (bool) {
+		
+        if (totalSupply_.add(_amount) > MAX_TOTAL_SUPPLY){
+            return false;
+        }
+
+        return super.mint(_to, _amount);
+    }
+
+
+    function transfer(address _to, uint256 _value) public validAddress(_to) returns (bool){
+        require(TRANSFERS_ALLOWED || msg.sender == owner);
+        require(canBeTransfered(msg.sender, _value));
+
+        return super.transfer(_to, _value);
+    }
+
+    function stopTransfers() onlyOwner public{
+        TRANSFERS_ALLOWED = false;
+    }
+
+    function resumeTransfers() onlyOwner public{
+        TRANSFERS_ALLOWED = true;
+    }
+	
+	function removeHoldByAddress(address _address) public onlyOwner {      
+        delete locks[_address];                 
+		locks[_address].length = 0; 
+    }
+
+    function removeHoldByAddressIndex(address _address, uint256 _index) public onlyOwner {
+		if (_index >= locks[_address].length) return;
+		
+		for (uint256 i = _index; i < locks[_address].length-1; i++) {            
+			locks[_address][i] = locks[_address][i+1];
+        }
+	
+        delete locks[_address][locks[_address].length-1];
+		locks[_address].length--;
+    }
+	
+	function isValidAddress(address _address) public view returns (bool) {
+        return (_address != 0x0 && _address != address(0) && _address != 0 && _address != address(this));
+    }
+
+    modifier validAddress(address _address) {
+        require(isValidAddress(_address)); 
+        _;
+    }
+    
+    function getlockslen(address _address) public view onlyOwner returns (uint256){
+        return locks[_address].length;
+    }
+    //others can only lookup the unlock time and amount for itself
+    function getlocksbyindex(address _address, uint256 _index) public view returns (uint256 TIME,address ADDRESS,uint256 AMOUNT){
+		require( msg.sender == _address || msg.sender == owner);
+        return (locks[_address][_index].TIME,locks[_address][_index].ADDRESS,locks[_address][_index].AMOUNT);
+    }    
+
+}
