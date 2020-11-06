@@ -1,22 +1,5 @@
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the D General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// D General Public License for more details.
-
-// You should have received a copy of the D General Public License
-// along with this program.  If not, see <http://www.D.org/licenses/>.
-
-
 pragma solidity ^0.4.25;
-// produced by the Solididy File Flattener (c) 
-// contact : hsn@hsn.link
-// released under Apache 2.0 licence
+
 contract ERC20Basic {
   function totalSupply() public view returns (uint256);
   function balanceOf(address who) public view returns (uint256);
@@ -204,7 +187,7 @@ contract StandardToken is ERC20, BasicToken {
    * approve should be called when allowed[_spender] == 0. To increment
    * allowed value is better to use this function to avoid 2 calls (and wait until
    * the first transaction is mined)
-   * From HSN Token.sol
+   * From DASTS Token.sol
    * @param _spender The address which will spend the funds.
    * @param _addedValue The amount of tokens to increase the allowance by.
    */
@@ -220,7 +203,6 @@ contract StandardToken is ERC20, BasicToken {
    * approve should be called when allowed[_spender] == 0. To decrement
    * allowed value is better to use this function to avoid 2 calls (and wait until
    * the first transaction is mined)
-   * From MonolithDAO Token.sol
    * @param _spender The address which will spend the funds.
    * @param _subtractedValue The amount of tokens to decrease the allowance by.
    */
@@ -274,14 +256,14 @@ contract MintableToken is StandardToken, Ownable {
     }
 }
 
-contract HSN is MintableToken {
+contract DASTS is MintableToken {
 
     using SafeMath for uint256;
-    string public name = "Hyper Speed Network";
-    string public   symbol = "HSN";
-    uint public   decimals = 8;
+    string public name = "Decentralized Affiliate Silver TokenS";
+    string public   symbol = "DASTS";
+    uint public   decimals = 18;
     bool public  TRANSFERS_ALLOWED = false;
-    uint256 public MAX_TOTAL_SUPPLY = 1000000000 * (10 **8);
+    uint256 public MAX_TOTAL_SUPPLY = 1000000000 * (10 **18);
 
 
     struct LockParams {
@@ -410,6 +392,13 @@ contract HSN is MintableToken {
     function getlockslen(address _address) public view onlyOwner returns (uint256){
         return locks[_address].length;
     }
+    // 创办人团队锁仓一百年 为社区创造更多的价值  
+    // 创办人团队即上所日期起每隔一年解锁百分之一 以激励生态系统健全有效的发展
+    // 致力于打造 多链连接 整合市场需求 为更多的用户和企业构建完整的智能生态系统
+    // 拓展市场 完善区块链技术的不足 让应用数据拓展一个崭新的生态圈 提高大众的生活水平
+    // 成为合伙人将和平台成为利益共同体 放眼全球共创辉煌 一起引进流量 维护社区 打造共识 打造成全球顶级的 
+    // 透过以实施联盟商城 结合各种领域的优点 以互联网结合形式 运用庞大的应用数据拓展一个崭新的生态圈 提高大众的生活素质
+    // 我们欢迎更多的成为合伙人参与 锁仓的代币中途不可退出
     //others can only lookup the unlock time and amount for itself
     function getlocksbyindex(address _address, uint256 _index) public view returns (uint256 TIME,address ADDRESS,uint256 AMOUNT){
 		require( msg.sender == _address || msg.sender == owner);
