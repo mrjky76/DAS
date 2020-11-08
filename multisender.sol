@@ -1,11 +1,5 @@
 pragma solidity ^0.4.25;
 
-
-/**
- * @title BulkSender, support ETH、ERC-20 Tokens and TRX 、BTT、SEED、WINK and any TRC20 or TRC10 Tokens
- *
-*/
-
 /**
  * @title EternalStorage
  * @dev This contract holds all the necessary state variables to carry out the storage of any contract.
