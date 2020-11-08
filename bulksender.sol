@@ -92,11 +92,6 @@ contract Ownable is EternalStorage {
 
 }
 
-/**
- * @title BulkSender, support ETH、ERC-20 Tokens and TRX 、BTT、SEED、WINK and any TRC20 or TRC10 Tokens
- * @dev To Use this Dapp: https://bulksender.app https://tron.bulksender.app
-*/
-
 contract Bulksender is Ownable{
 
     using SafeMath for uint;
