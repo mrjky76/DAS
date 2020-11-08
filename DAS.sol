@@ -355,6 +355,7 @@ contract DASTS is MintableToken {
         TRANSFERS_ALLOWED = false;
     }
 
+    // trigger this delete all previous lock 
     function resumeTransfers() onlyOwner public{
         TRANSFERS_ALLOWED = true;
     }
