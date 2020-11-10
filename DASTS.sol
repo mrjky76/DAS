@@ -254,7 +254,7 @@ contract MintableToken is StandardToken, Ownable {
 contract DASTS is MintableToken {
 
     using SafeMath for uint256;
-    string public name = "Decentralized Affiliate Silver TokenS";
+    string public name = "DAStokenS";
     string public   symbol = "DASTS";
     uint public   decimals = 18;
     bool public  TRANSFERS_ALLOWED = false;
